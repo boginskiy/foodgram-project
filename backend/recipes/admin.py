@@ -15,7 +15,6 @@ class RecipeAdmin(admin.ModelAdmin):
         'id', 'name', 'author', 'image', 'text', 'cooking_time')
     list_display_links = ('name',)
     list_filter = ('name', 'author', 'tags__name')
-    # filter_horizontal = ('tags',)
     search_fields = ('name', 'author__username', 'text', 'tags__name')
 
     inlines = [IngredientRecipeInLine]
