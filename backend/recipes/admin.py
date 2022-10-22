@@ -4,59 +4,58 @@ from .models import (
     TagRecipe, FavoriteRecipe, ShoppingList)
 
 
+class IngredientRecipeInLine(admin.TabularInline):
+    model = IngredientRecipe
+    extra = 1
+
+
+@admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'name', 'author', 'image', 'text', 'cooking_time')
-    list_filter = ()
+    list_display_links = ('name',)
+    list_filter = ('name', 'author', 'tags__name')
+    # filter_horizontal = ('tags',)
+    search_fields = ('name', 'author__username', 'text', 'tags__name')
+
+    inlines = [IngredientRecipeInLine]
+    save_on_top = True
+    fieldsets = (
+        ('Data', {
+            'fields': (('image', 'text', 'cooking_time'),)
+        }),
+    )
 
 
-admin.site.register(Recipe, RecipeAdmin)
-
-
+@admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
     list_display = ('id', 'name', 'color', 'slug')
-    list_filter = ()
 
 
-admin.site.register(Tag, TagAdmin)
-
-
+@admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'measurement_unit')
-    list_filter = ()
+    list_filter = ('name',)
+    search_fields = ('name',)
 
 
-admin.site.register(Ingredient, IngredientAdmin)
-
-
+@admin.register(IngredientRecipe)
 class IngredientRecipeAdmin(admin.ModelAdmin):
     list_display = ('id', 'ingredient', 'recipe', 'amount')
-    list_filter = ()
 
 
-admin.site.register(IngredientRecipe, IngredientRecipeAdmin)
-
-
+@admin.register(TagRecipe)
 class TagRecipeAdmin(admin.ModelAdmin):
     list_display = ('id', 'tag', 'recipe')
-    list_filter = ()
+    list_filter = ('tag',)
 
 
-admin.site.register(TagRecipe, TagRecipeAdmin)
-
-
+@admin.register(FavoriteRecipe)
 class FavoriteRecipeAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'recipe')
-    list_filter = ()
 
 
-admin.site.register(FavoriteRecipe, FavoriteRecipeAdmin)
-
-
+@admin.register(ShoppingList)
 class ShoppingListAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'recipe')
-    list_filter = ()
-
-
-admin.site.register(ShoppingList, ShoppingListAdmin)

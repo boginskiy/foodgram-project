@@ -51,7 +51,8 @@ class IngredientRecipe(models.Model):
 
 
 class Tag(models.Model):
-    name = models.CharField(max_length=32, unique=True, blank=False)
+    name = models.CharField(
+        max_length=32, unique=True, blank=False)
     color = ColorField(
         default='#ffffff', format='hex', unique=True, blank=False)
     slug = models.SlugField(max_length=32, unique=True, blank=False)
