@@ -42,5 +42,5 @@ jobs:
         with:
           push: true
           tags: boginskiy/foodgramm:latest
-          context: backend
-          file: Dockerfile
+          # context: backend
+          # file: Dockerfile
