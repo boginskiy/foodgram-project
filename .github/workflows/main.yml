@@ -39,8 +39,8 @@ jobs:
 
       - name: Push to Docker Hub
         uses: docker/build-push-action@v2 
-          with:
-            push: true
-            tags: boginskiy/foodgramm:latest
-            context: foodgramm
-            file: Dockerfile
+        with:
+          push: true
+          tags: boginskiy/foodgramm:latest
+          context: foodgramm
+          file: Dockerfile
