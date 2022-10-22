@@ -58,3 +58,4 @@ jobs:
           sudo docker pull boginskiy/foodgramm
           sudo docker stop $(sudo docker ps -a -q)
           sudo docker run --rm -d -p 8000:8000 boginskiy/foodgramm
+
