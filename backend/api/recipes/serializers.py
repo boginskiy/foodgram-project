@@ -66,8 +66,8 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = ('id', 'tags', 'author', 'ingredients',
-                  'is_favorited', 'is_in_shopping_cart', 'name',
+        fields = ('name', 'id', 'tags', 'author', 'ingredients',
+                  'is_favorited', 'is_in_shopping_cart',
                   'image', 'text', 'cooking_time')
 
     def get_is_favorited(self, obj):
@@ -94,20 +94,6 @@ class RecipeSerializer(serializers.ModelSerializer):
                 'Время приготовления от 1 мин.')
         return value
 
-    def validate(self, data):
-        """Валидация изменения чужого контента."""
-
-        current_user = self.context['request'].user
-
-        if self.context['request'].method == 'PATCH':
-            admin = self.context['request'].user.is_staff
-            author = self.instance.author
-            if current_user != author and not admin:
-                raise serializers.ValidationError(
-                    'Вы не можете изменять чужой контент')
-            return data
-        return data
-
     def create(self, validated_data):
         """Кастомный метод создания рецептов."""
 
@@ -132,12 +118,6 @@ class RecipeSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         """Кастомный метод обновления рецептов."""
 
-        instance.name = validated_data.get('name', instance.name)
-        instance.image = validated_data.get('image', instance.image)
-        instance.text = validated_data.get('text', instance.text)
-        instance.cooking_time = validated_data.get(
-            'cooking_time', instance.cooking_time)
-
         if 'ingredients' in validated_data:
             instance.ingredients.clear()
             new_ingredients = validated_data.pop('ingredients')
@@ -155,6 +135,8 @@ class RecipeSerializer(serializers.ModelSerializer):
             for tag_id in new_tags_list:
                 tag_rec = get_object_or_404(Tag, id=tag_id)
                 instance.tags.add(tag_rec)
+
+        super().update(instance, validated_data)
 
         instance.save()
         return instance

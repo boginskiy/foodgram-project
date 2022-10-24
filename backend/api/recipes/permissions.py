@@ -1,4 +1,6 @@
 from rest_framework import permissions
+from django.shortcuts import get_object_or_404
+from recipes.models import Recipe
 
 
 class PatchIsAuthorOrReadAll(permissions.BasePermission):
@@ -7,13 +9,12 @@ class PatchIsAuthorOrReadAll(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
+
+        info_url_pecipe_id = request.path.split('/')[-2]
+        obj_recipe = get_object_or_404(Recipe, id=info_url_pecipe_id)
+
         return bool(
             request.method in permissions.SAFE_METHODS
             or request.user and request.user.is_staff
-            or request.user and request.user.is_authenticated
+            or request.user == obj_recipe.author
         )
-
-    def has_object_permission(self, request, view, obj):
-        return (
-            request.user.is_staff
-            or obj.author == request.user)
