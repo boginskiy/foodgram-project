@@ -4,14 +4,20 @@ from recipes.models import Recipe
 
 
 class UserMultiSerializer(serializers.ModelSerializer):
+    """Базовый сериализатор для модели User."""
+
     is_subscribed = serializers.SerializerMethodField()
     first_name = serializers.SerializerMethodField()
     last_name = serializers.SerializerMethodField()
 
     def get_first_name(self, obj):
+        """Имя пишется с большой буквы."""
+
         return obj.first_name.title()
 
     def get_last_name(self, obj):
+        """Фамилия пишется с большой буквы."""
+
         return obj.last_name.title()
 
     def get_is_subscribed(self, obj):
@@ -30,6 +36,8 @@ class UserMultiSerializer(serializers.ModelSerializer):
 
 
 class UserSignupSerializer(serializers.ModelSerializer):
+    """Сериализатор регистрации пользователя для модели User."""
+
     username = serializers.CharField(
         error_messages={'required': 'Обязательное поле.'})
     password = serializers.CharField(write_only=True)
@@ -49,6 +57,8 @@ class UserSignupSerializer(serializers.ModelSerializer):
 
 
 class ChangePasswordSerializer(serializers.Serializer):
+    """Сериализатор обновления текущ. пароля для модели User."""
+
     current_password = serializers.CharField(write_only=True)
     new_password = serializers.CharField(write_only=True)
 
@@ -67,10 +77,9 @@ class ChangePasswordSerializer(serializers.Serializer):
         instance.save()
         return instance
 
-# ----- Подписки пользователей -----
-
 
 class UserRecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор для демонстрации рецептов пользователя."""
 
     class Meta:
         model = Recipe
@@ -78,6 +87,8 @@ class UserRecipeSerializer(serializers.ModelSerializer):
 
 
 class FollowingUserSerializer(serializers.ModelSerializer):
+    """Сериализатор подписчиков и подписок для модели UserFollowing."""
+
     first_name = serializers.SerializerMethodField()
     last_name = serializers.SerializerMethodField()
     is_subscribed = serializers.SerializerMethodField()
@@ -99,9 +110,13 @@ class FollowingUserSerializer(serializers.ModelSerializer):
         return serializer.data
 
     def get_first_name(self, obj):
+        """Имя с большой буквы."""
+
         return obj.first_name.title()
 
     def get_last_name(self, obj):
+        """Фамилия с большой буквы."""
+
         return obj.last_name.title()
 
     def get_is_subscribed(self, obj):

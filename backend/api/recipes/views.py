@@ -8,13 +8,11 @@ from rest_framework.permissions import (
 from .paginations import RecipesListPagination
 from recipes.models import (
     FavoriteRecipe, IngredientRecipe, Ingredient,
-    Recipe, Tag, TagRecipe, ShoppingList)
+    Recipe, Tag, ShoppingList)
 from ..users.serializers import UserRecipeSerializer
 from .serializers import (
-    IngredientListDetailSerializer, RecipeSerializer, TagListSerializer)
+    IngredientListDetailSerializer, TagSerializer, RecipeSerializer)
 from .permissions import PatchIsAuthorOrReadAll
-
-# ----- Favorite -----
 
 
 @api_view(['POST', 'DELETE'])
@@ -46,8 +44,6 @@ def recipes_favorite(request, recipes_id):
         {'message': 'Рецепт отсутствует в списке избранное.'},
         status=status.HTTP_400_BAD_REQUEST)
 
-# ----- Tag -----
-
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -55,7 +51,7 @@ def tags_list(request):
     """Список текущих тегов."""
 
     tags = Tag.objects.all()
-    serializer = TagListSerializer(tags, many=True)
+    serializer = TagSerializer(tags, many=True)
     return Response(serializer.data)
 
 
@@ -65,10 +61,8 @@ def tags_detail(request, tags_id):
     """Получение выбранного тега."""
 
     tag = get_object_or_404(Tag, id=tags_id)
-    serializer = TagListSerializer(tag)
+    serializer = TagSerializer(tag)
     return Response(serializer.data)
-
-# ----- Ingredients -----
 
 
 @api_view(['GET'])
@@ -93,8 +87,6 @@ def ingredients_detail(request, ingredients_id):
     ingredient = get_object_or_404(Ingredient, id=ingredients_id)
     serializer = IngredientListDetailSerializer(ingredient)
     return Response(serializer.data)
-
-# ----- Recipes -----
 
 
 @api_view(['GET', 'POST'])
@@ -140,9 +132,9 @@ def recipes_list_create(request):
             recipes = Recipe.objects.filter(author=int(author))
 
         elif tags:
+            print(tags)
             tags = Tag.objects.filter(slug__in=tags)
-            tag_recipe_qwery = TagRecipe.objects.filter(tag__in=tags)
-            recipes = Recipe.objects.filter(tag_rec__in=tag_recipe_qwery)
+            recipes = Recipe.objects.filter(tags__in=tags)
     else:
         recipes = Recipe.objects.all()
 
@@ -161,7 +153,7 @@ def recipes_detail(request, recipes_id):
     recipe = get_object_or_404(Recipe, id=recipes_id)
 
     if request.method == 'GET':
-        serializer = RecipeSerializer(recipe)
+        serializer = RecipeSerializer(recipe, context={'request': request})
         return Response(serializer.data)
 
     if request.method == 'DELETE':
@@ -208,19 +200,16 @@ def recipes_detail_shop_cart(request, recipes_id):
         return Response({"message": "Рецепт отсутствует в списке покупок."},
                         status=status.HTTP_400_BAD_REQUEST)
 
-    recipe_in_list_del = ShoppingList.objects.get(recipe=recipes_id)
+    recipe_in_list_del = get_object_or_404(ShoppingList, recipe=recipes_id)
     recipe_in_list_del.delete()
     return Response(status=status.HTTP_201_CREATED)
-
-# ----- Shopping_cart -----
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def recipes_shop_cart_download(request):
-    """Сбор данных с рецептов для списка покупок. Список продуктов."""
+    """Сбор данных с рецептов для списка покупок. Выгрузка списка."""
 
-    # Составил dict с ингредиенами из списка рецептов.
     set_recipes = ShoppingList.objects.filter(user=request.user)
 
     user_name = (f'{request.user.first_name.title()}_'
@@ -243,7 +232,6 @@ def recipes_shop_cart_download(request):
         else:
             shop_cart[key] = ingredient.amount
 
-    # Сделал список покупок txt.file с ингредиентами из списка рецептов.
     file = open('media/recipes/shop_cart/list.txt', 'w')
     file.write('Список покупок:\n')
     count = 1

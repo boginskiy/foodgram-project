@@ -2,19 +2,17 @@ from django.db import models
 from colorfield.fields import ColorField
 from users.models import User
 
-# ----- Recipes -----
-
 
 class Recipe(models.Model):
+    """Модель Рецептов."""
+
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='recipes')
     name = models.CharField(max_length=200, blank=False)
     image = models.ImageField(upload_to='recipes/images/', blank=False)
     text = models.TextField(blank=False)
-    ingredients = models.ManyToManyField(
-        'Ingredient', through='IngredientRecipe')
-    tags = models.ManyToManyField(
-        'Tag', through='TagRecipe')
+    ingredients = models.ManyToManyField('IngredientRecipe')
+    tags = models.ManyToManyField('Tag')
     cooking_time = models.IntegerField(blank=False)
 
     def __str__(self):
@@ -23,10 +21,10 @@ class Recipe(models.Model):
     class Meta:
         ordering = ['-id']
 
-# ----- Ingredient -----
-
 
 class Ingredient(models.Model):
+    """Модель Ингредиентов."""
+
     name = models.CharField(max_length=128, blank=False)
     measurement_unit = models.CharField(max_length=32, blank=False)
 
@@ -38,19 +36,19 @@ class Ingredient(models.Model):
 
 
 class IngredientRecipe(models.Model):
+    """Модель ингредиентов-рецептов."""
+
     ingredient = models.ForeignKey(
         Ingredient, on_delete=models.CASCADE, related_name='ingred_rec')
-    recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, related_name='ingred_rec')
     amount = models.IntegerField(blank=False)
 
     def __str__(self):
-        return f'{self.ingredient} {self.recipe} {self.amount}'
-
-# ----- Tag -----
+        return f'{self.ingredient}'
 
 
 class Tag(models.Model):
+    """Модель тегов."""
+
     name = models.CharField(
         max_length=32, unique=True, blank=False)
     color = ColorField(
@@ -64,19 +62,9 @@ class Tag(models.Model):
         ordering = ['id']
 
 
-class TagRecipe(models.Model):
-    tag = models.ForeignKey(
-        Tag, on_delete=models.CASCADE, related_name='tag_rec')
-    recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, related_name='tag_rec')
-
-    class Meta:
-        ordering = ['-id']
-
-# ----- Favorite -----
-
-
 class FavoriteRecipe(models.Model):
+    """Модель избранных рецептов."""
+
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='favorite_rec')
     recipe = models.ForeignKey(
@@ -86,10 +74,10 @@ class FavoriteRecipe(models.Model):
     class Meta:
         ordering = ['-created']
 
-# ----- ShoppingList -----
-
 
 class ShoppingList(models.Model):
+    """Модель списков с рецептами."""
+
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='shop_list')
     recipe = models.ForeignKey(

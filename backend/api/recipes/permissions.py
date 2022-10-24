@@ -2,6 +2,10 @@ from rest_framework import permissions
 
 
 class PatchIsAuthorOrReadAll(permissions.BasePermission):
+    """Кастомный пермишенс. Читать могут все,
+    изменять только автор или админ.
+    """
+
     def has_permission(self, request, view):
         return bool(
             request.method in permissions.SAFE_METHODS

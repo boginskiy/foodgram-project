@@ -11,13 +11,11 @@ from .serializers import (
     UserMultiSerializer,
     UserSignupSerializer)
 
-# ----- Users -----
-
 
 @api_view(['POST', 'GET'])
 @permission_classes([AllowAny])
 def users_list_signup(request):
-    """Просмотр всех пользователей и регистрация новых."""
+    """User. Просмотр всех пользователей и регистрация новых."""
 
     if request.method == 'POST':
         serializer = UserSignupSerializer(data=request.data)
@@ -37,7 +35,7 @@ def users_list_signup(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def users_detail(request, users_id):
-    """Просмотр чужого профиля."""
+    """User. Просмотр чужого профиля."""
 
     user = get_object_or_404(User, id=users_id)
     serializer = UserMultiSerializer(
@@ -48,9 +46,9 @@ def users_detail(request, users_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def users_me(request):
-    """Просмотр своего профиля."""
+    """User. Просмотр своего профиля."""
 
-    user = User.objects.get(username=request.user)
+    user = get_object_or_404(User, username=request.user)
     serializer = UserMultiSerializer(
         user, context={'users_id': request.user.id})
     return Response(serializer.data)
@@ -59,9 +57,9 @@ def users_me(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def users_set_password(request):
-    """Изменение текущего пароля."""
+    """User. Изменение текущего пароля."""
 
-    user = User.objects.get(username=request.user)
+    user = get_object_or_404(User, username=request.user)
     serializer = ChangePasswordSerializer(user, data=request.data)
 
     if serializer.is_valid():
@@ -71,13 +69,11 @@ def users_set_password(request):
             status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# ----- Подписки пользователей -----
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def users_subscriptions(request):
-    """Возвращает подписки текущего user."""
+    """Subscriptions. Возвращает подписки текущего user."""
 
     user_subscriber = UserFollowing.objects.filter(
         subscriber=request.user)
@@ -96,9 +92,9 @@ def users_subscriptions(request):
 @api_view(['POST', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def users_subscribe_delete(request, users_id):
-    """Подписаться на пользователя или отписаться."""
+    """Subscriptions. Подписаться на пользователя или отписаться."""
 
-    follower = User.objects.get(username=request.user)
+    follower = get_object_or_404(User, username=request.user)
     user_content = get_object_or_404(User, id=users_id)
     logic = UserFollowing.objects.filter(
         user=users_id, subscriber=follower.id).exists()
@@ -116,7 +112,7 @@ def users_subscribe_delete(request, users_id):
 
         UserFollowing.objects.create(user=user_content, subscriber=follower)
         serializer = FollowingUserSerializer(
-            user_content, context={'users_id': request.user.id})
+            user_content, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     if not logic:

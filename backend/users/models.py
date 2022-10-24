@@ -3,6 +3,8 @@ from django.db import models
 
 
 class User(AbstractUser):
+    """Переопределение базовой модели User."""
+
     first_name = models.CharField(max_length=150, blank=False)
     last_name = models.CharField(max_length=150, blank=False)
 
