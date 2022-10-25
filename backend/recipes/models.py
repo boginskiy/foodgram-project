@@ -12,7 +12,7 @@ class Recipe(models.Model):
     image = models.ImageField(upload_to='recipes/images/', blank=False)
     text = models.TextField(blank=False)
     ingredients = models.ManyToManyField('IngredientRecipe')
-    tags = models.ManyToManyField('Tag')
+    tags = models.ManyToManyField('Tag', related_name='qwerty')
     cooking_time = models.IntegerField(blank=False)
 
     def __str__(self):

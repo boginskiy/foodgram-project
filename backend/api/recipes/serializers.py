@@ -74,17 +74,22 @@ class RecipeSerializer(serializers.ModelSerializer):
         """Определяет фавориты рецептов."""
 
         current_user = self.context['request'].user
-        queryset = FavoriteRecipe.objects.filter(
+
+        if current_user.is_authenticated:
+            queryset = FavoriteRecipe.objects.filter(
             user=current_user, recipe=obj).exists()
-        return queryset
+            return queryset
+        return False
 
     def get_is_in_shopping_cart(self, obj):
         """Определяет рецепты в шоп листе."""
 
         current_user = self.context['request'].user
-        queryset = ShoppingList.objects.filter(
-            user=current_user, recipe=obj).exists()
-        return queryset
+        if current_user.is_authenticated:
+            queryset = ShoppingList.objects.filter(
+                user=current_user, recipe=obj).exists()
+            return queryset
+        return False
 
     def validate_cooking_time(self, value):
         """Валидация времени приготовления блюда."""
@@ -137,6 +142,4 @@ class RecipeSerializer(serializers.ModelSerializer):
                 instance.tags.add(tag_rec)
 
         super().update(instance, validated_data)
-
-        instance.save()
         return instance

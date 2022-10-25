@@ -65,10 +65,17 @@ def tags_detail(request, tags_id):
     return Response(serializer.data)
 
 
-@api_view(['GET'])
-@permission_classes([AllowAny])
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticatedOrReadOnly])
 def ingredients_list(request):
-    """Список всех ингредиентов."""
+    """Список всех ингредиентов. Добавление ингредиентов."""
+
+    if request.method == 'POST':
+        serializer = IngredientListDetailSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     name = request.query_params.get('name')
     if name:
@@ -108,35 +115,32 @@ def recipes_list_create(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    if request.query_params:
-        recipes = []
+    if not request.query_params:
+        return Response(status=status.HTTP_200_OK)
 
-        is_favorited = request.query_params.get('is_favorited', 0)
-        is_in_shopping_cart = request.query_params.get(
-            'is_in_shopping_cart', 0)
-        author = request.query_params.get('author', 0)
-        tags = dict(request.query_params.lists()).get('tags')
+    is_favorited = request.query_params.get('is_favorited', 0)
+    is_in_shopping_cart = request.query_params.get(
+        'is_in_shopping_cart', 0)
+    author = request.query_params.get('author', 0)
+    tags = dict(request.query_params.lists()).get('tags')
 
-        if int(is_favorited):
-            favorite_recipe_qwery = FavoriteRecipe.objects.filter(
-                user=request.user)
-            recipes = Recipe.objects.filter(
-                favorite_rec__in=favorite_recipe_qwery)
+    if int(is_favorited):
+        favorite_recipe_qwery = FavoriteRecipe.objects.filter(
+            user=request.user)
+        recipes = Recipe.objects.filter(
+            favorite_rec__in=favorite_recipe_qwery)
 
-        elif int(is_in_shopping_cart):
-            shopping_list_qwery = ShoppingList.objects.filter(
-                user=request.user)
-            recipes = Recipe.objects.filter(shop_list__in=shopping_list_qwery)
+    elif int(is_in_shopping_cart):
+        shopping_list_qwery = ShoppingList.objects.filter(
+            user=request.user)
+        recipes = Recipe.objects.filter(shop_list__in=shopping_list_qwery)
 
-        elif author:
-            recipes = Recipe.objects.filter(author=int(author))
+    elif author:
+        recipes = Recipe.objects.filter(author=int(author))
 
-        elif tags:
-            print(tags)
-            tags = Tag.objects.filter(slug__in=tags)
-            recipes = Recipe.objects.filter(tags__in=tags)
-    else:
-        recipes = Recipe.objects.all()
+    elif tags:
+        # Найти способ фильтрации!
+        recipes = Recipe.objects.filter(tags__slug__in=tags).distinct()
 
     paginator = RecipesListPagination()
     result_page = paginator.paginate_queryset(recipes, request)
