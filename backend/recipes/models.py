@@ -40,7 +40,7 @@ class IngredientRecipe(models.Model):
 
     ingredient = models.ForeignKey(
         Ingredient, on_delete=models.CASCADE, related_name='ingred_rec')
-    amount = models.IntegerField(blank=False)
+    amount = models.FloatField(blank=False)
 
     def __str__(self):
         return f'{self.ingredient}'

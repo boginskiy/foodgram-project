@@ -139,7 +139,6 @@ def recipes_list_create(request):
         recipes = Recipe.objects.filter(author=int(author))
 
     elif tags:
-        # Найти способ фильтрации!
         recipes = Recipe.objects.filter(tags__slug__in=tags).distinct()
 
     paginator = RecipesListPagination()
@@ -206,7 +205,7 @@ def recipes_detail_shop_cart(request, recipes_id):
 
     recipe_in_list_del = get_object_or_404(ShoppingList, recipe=recipes_id)
     recipe_in_list_del.delete()
-    return Response(status=status.HTTP_201_CREATED)
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(['GET'])
