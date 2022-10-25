@@ -77,7 +77,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
         if current_user.is_authenticated:
             queryset = FavoriteRecipe.objects.filter(
-            user=current_user, recipe=obj).exists()
+                user=current_user, recipe=obj).exists()
             return queryset
         return False
 
