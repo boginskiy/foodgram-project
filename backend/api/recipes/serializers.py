@@ -23,7 +23,7 @@ class IngredientSerializer(serializers.ModelSerializer):
     name = serializers.CharField(read_only=True, source='ingredient.name')
     measurement_unit = serializers.CharField(
         read_only=True, source='ingredient.measurement_unit')
-    amount = serializers.IntegerField(required=True)
+    amount = serializers.FloatField(required=True)
 
     class Meta:
         model = IngredientRecipe
@@ -66,8 +66,8 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = ('name', 'id', 'tags', 'author', 'ingredients',
-                  'is_favorited', 'is_in_shopping_cart',
+        fields = ('id', 'tags', 'author', 'ingredients',
+                  'is_favorited', 'is_in_shopping_cart', 'name',
                   'image', 'text', 'cooking_time')
 
     def get_is_favorited(self, obj):

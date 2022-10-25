@@ -10,11 +10,6 @@ services:
   web:
     image: boginskiy/foodgramm:latest
     restart: always
-
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
-
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
@@ -25,10 +20,6 @@ services:
 
   frontend:
     image: boginskiy/frontend:v1.1
-    restart: always
-    # build:
-    #   context: ./frontend
-    #   dockerfile: Dockerfile
     volumes:
       - ./frontend/:/app/result_build/
 
