@@ -115,22 +115,13 @@ def recipes_list_create(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    if not request.query_params:
-        return Response(status=status.HTTP_200_OK)
-
     is_favorited = request.query_params.get('is_favorited', 0)
     is_in_shopping_cart = request.query_params.get(
         'is_in_shopping_cart', 0)
     author = request.query_params.get('author', 0)
     tags = dict(request.query_params.lists()).get('tags')
 
-    if int(is_favorited):
-        favorite_recipe_qwery = FavoriteRecipe.objects.filter(
-            user=request.user)
-        recipes = Recipe.objects.filter(
-            favorite_rec__in=favorite_recipe_qwery)
-
-    elif int(is_in_shopping_cart):
+    if int(is_in_shopping_cart):
         shopping_list_qwery = ShoppingList.objects.filter(
             user=request.user)
         recipes = Recipe.objects.filter(shop_list__in=shopping_list_qwery)
@@ -139,7 +130,16 @@ def recipes_list_create(request):
         recipes = Recipe.objects.filter(author=int(author))
 
     elif tags:
-        recipes = Recipe.objects.filter(tags__slug__in=tags).distinct()
+        if int(is_favorited):
+            favorite_recipe_qwery = FavoriteRecipe.objects.filter(
+            user=request.user)
+            recipes = Recipe.objects.filter(
+            favorite_rec__in=favorite_recipe_qwery, tags__slug__in=tags).distinct()
+        else:
+            recipes = Recipe.objects.filter(tags__slug__in=tags).distinct()
+
+    elif tags == None:
+        recipes = Recipe.objects.filter(tags__slug__in=[])
 
     paginator = RecipesListPagination()
     result_page = paginator.paginate_queryset(recipes, request)

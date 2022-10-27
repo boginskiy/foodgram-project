@@ -123,20 +123,31 @@ class RecipeSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         """Кастомный метод обновления рецептов."""
 
-        if 'ingredients' in validated_data:
-            instance.ingredients.clear()
-            new_ingredients = validated_data.pop('ingredients')
-            for ingredient in new_ingredients:
-                id_ = ingredient['id']
-                amount_ = ingredient['amount']
+        new_ingred = validated_data.pop('ingredients')
+        current_ingred = instance.ingredients.all()
 
+        if new_ingred:
+            for new_ing in new_ingred:
                 update_rec, status = IngredientRecipe.objects.get_or_create(
-                    ingredient_id=id_, amount=amount_)
+                ingredient_id=new_ing['id'], amount=new_ing['amount'])
                 instance.ingredients.add(update_rec)
+        else:
+            for cur_ing in current_ingred:
+                instance.ingredients.add(cur_ing)
 
+            for cur_ing in current_ingred:
+                update_rec, status = IngredientRecipe.objects.get_or_create(
+                ingredient_id=cur_ing.ingredient.id, amount=cur_ing.amount)
+                instance.ingredients.add(cur_ing)
+
+# ---------------------------------------------------------------
         new_tags_list = self.context.get('tags')
+        all_tags_recipe = instance.tags.all()
+
         if new_tags_list:
-            instance.tags.clear()
+            for tag_rec in all_tags_recipe:
+                instance.tags.remove(tag_rec.id)
+
             for tag_id in new_tags_list:
                 tag_rec = get_object_or_404(Tag, id=tag_id)
                 instance.tags.add(tag_rec)
