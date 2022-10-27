@@ -32,8 +32,8 @@ urlpatterns = [
     path('ingredients/<int:ingredients_id>/', ingredients_detail),
 
     # Рецепты
-    path('recipes/', recipes_list_create),
-    path('recipes/<int:recipes_id>/', recipes_detail),
+    path('recipes/', recipes_list_create, name='recipes'),
+    path('recipes/<int:recipes_id>/', recipes_detail, name='recipes_detail'),
 
     # Избранное
     path('recipes/<int:recipes_id>/favorite/', recipes_favorite),

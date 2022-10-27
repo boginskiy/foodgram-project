@@ -127,6 +127,11 @@ class RecipeSerializer(serializers.ModelSerializer):
         current_ingred = instance.ingredients.all()
 
         if new_ingred:
+
+            # clean recipes ing
+            for obj in current_ingred:
+                obj.recipe_set.remove(instance)
+
             for new_ing in new_ingred:
                 update_rec, status = IngredientRecipe.objects.get_or_create(
                 ingredient_id=new_ing['id'], amount=new_ing['amount'])
