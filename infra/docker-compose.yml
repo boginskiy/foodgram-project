@@ -5,30 +5,26 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
-      - ../backend/.env
+      - ../.env
 
   web:
-    # image: boginskiy/foodgramm:latest
-    # restart: always
-
     build:
-      context: ../backend/
+      context: ../
       dockerfile: Dockerfile
-
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
     depends_on:
       - db
     env_file:
-      - ../backend/.env
+      - ../.env
 
   frontend:
-    # image: boginskiy/frontend:v1.1
+    image: boginskiy/frontend:v1.1
     # restart: always
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    # build:
+    #   context: ../frontend
+    #   dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
 
@@ -37,7 +33,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ../nginx.conf:/etc/nginx/conf.d/default.conf
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
       - static_value:/var/html/static/
@@ -51,56 +47,56 @@ volumes:
   media_value:
   postgres_data:
 
-  # --------------------------------
-  version: '3.3'
-services:
-  db:
-    image: postgres:13.0-alpine
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    env_file:
-      - ./.env
+#   # --------------------------------
+#   version: '3.3'
+# services:
+#   db:
+#     image: postgres:13.0-alpine
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data/
+#     env_file:
+#       - ./.env
 
-  web:
-    image: boginskiy/foodgramm:latest
-    restart: always
+#   web:
+#     image: boginskiy/foodgramm:latest
+#     restart: always
 
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
+#     # build:
+#     #   context: .
+#     #   dockerfile: Dockerfile
 
-    volumes:
-      - static_value:/app/static/
-      - media_value:/app/media/
-    depends_on:
-      - db
-    env_file:
-      - ./.env
+#     volumes:
+#       - static_value:/app/static/
+#       - media_value:/app/media/
+#     depends_on:
+#       - db
+#     env_file:
+#       - ./.env
 
-  frontend:
-    image: boginskiy/frontend:v1.1
-    # restart: always
-    # build:
-    #   context: ./frontend
-    #   dockerfile: Dockerfile
-    volumes:
-      - ./frontend/:/app/result_build/
+#   frontend:
+#     image: boginskiy/frontend:v1.1
+#     # restart: always
+#     # build:
+#     #   context: ./frontend
+#     #   dockerfile: Dockerfile
+#     volumes:
+#       - ./frontend/:/app/result_build/
 
-  nginx:
-    image: nginx:1.21.3-alpine
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./frontend/build:/usr/share/nginx/html/
-      - ./docs/:/usr/share/nginx/html/api/docs/
-      - static_value:/var/html/static/
-      - media_value:/var/html/media/
-    depends_on:
-      - web
-      - frontend
+#   nginx:
+#     image: nginx:1.21.3-alpine
+#     ports:
+#       - "80:80"
+#     volumes:
+#       - ./nginx.conf:/etc/nginx/conf.d/default.conf
+#       - ./frontend/build:/usr/share/nginx/html/
+#       - ./docs/:/usr/share/nginx/html/api/docs/
+#       - static_value:/var/html/static/
+#       - media_value:/var/html/media/
+#     depends_on:
+#       - web
+#       - frontend
 
-volumes:
-  static_value:
-  media_value:
-  postgres_data:
+# volumes:
+#   static_value:
+#   media_value:
+#   postgres_data:
