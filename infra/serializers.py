@@ -119,65 +119,42 @@ class RecipeSerializer(serializers.ModelSerializer):
             new_recipe.tags.add(tag_rec)
 
         return new_recipe
-# --------------------------------------------------
+
     def update(self, instance, validated_data):
         """Кастомный метод обновления рецептов."""
 
-        new_ingr = validated_data.pop('ingredients')
-        curr_ingr = instance.ingredients.all()
-# new_ingred
-# [OrderedDict([('id', 1), ('amount', 77.0)]), OrderedDict([('id', 100), ('amount', 78.0)])]
-# [{'id': 12, 'amount': 77.0}, {'id': 13, 'amount': 78.0}]
-        count_new_ingr= len(new_ingr)
-        count_curr_ingr = len(curr_ingr)
-        i, k = 0, 0
+        new_ingred = validated_data.pop('ingredients')
+        current_ingred = instance.ingredients.all()
 
-        while i < count_new_ingr and k < count_curr_ingr:
-            if (new_ingr[i]['id'] == curr_ingr[k].id and 
-                    new_ingr[i]['amount'] == curr_ingr[k].amount):
-                new_ingr.pop(0)
-                i += 1
-                k += 1
-            else:
-                instance.ingredients.remove(curr_ingr[k].id)
-                k += 1
+        if new_ingred:
 
-        while k < count_curr_ingr:
-            instance.ingredients.remove(curr_ingr[k].id)
+            # clean recipes ing
+            for obj in current_ingred:
+                obj.recipe_set.remove(instance)
 
-        for obj in new_ingr:
-            update_rec, status = IngredientRecipe.objects.get_or_create(
-            ingredient_id=obj['id'], amount=obj['amount'])
-            instance.ingredients.add(update_rec)
+            for new_ing in new_ingred:
+                update_rec, status = IngredientRecipe.objects.get_or_create(
+                ingredient_id=new_ing['id'], amount=new_ing['amount'])
+                instance.ingredients.add(update_rec)
+        else:
+            for cur_ing in current_ingred:
+                instance.ingredients.add(cur_ing)
 
-        # for new_ing in new_ingred:
-        #     id_ = new_ing['id']
-        #     amount_ = new_ing['amount']
+            for cur_ing in current_ingred:
+                update_rec, status = IngredientRecipe.objects.get_or_create(
+                ingredient_id=cur_ing.ingredient.id, amount=cur_ing.amount)
+                instance.ingredients.add(cur_ing)
 
-        #     if id_ == arr_3[count]['id'] and amount_ == arr_3[count]['amount']:
+        # if new_ingred == []:
+        #     for cur_ing in current_ingred:
+        #         instance.ingredients.add(cur_ing.id)
 
-        #         print('dddd')
-        #         count += 1
-        #         continue
-            
-
-        # if new_ingred:
-        #     for new_ing in new_ingred: # Записал новые записи
-        #         update_rec, status = IngredientRecipe.objects.get_or_create(
-        #         ingredient=new_ing['id'], amount=new_ing['amount']) # тут достал id Ingredient
-        #         instance.ingredients.add(update_rec)
-
-
+        # elif new_ingred:
         #     for new_ing in new_ingred:
         #         update_rec, status = IngredientRecipe.objects.get_or_create(
         #         ingredient_id=new_ing['id'], amount=new_ing['amount'])
-        #         instance.ingredients.add(update_rec)
-        # else:
-        #     for cur_ing in current_ingred:
-        #         instance.ingredients.add(cur_ing)
+        #         instance.ingredients.add(update_rec.id) # Тут получим id лиюо новых пар либо старых
 
-# for obj in current_ingred:
-#   obj.recipe_set.remove(instance)
 # --------------
 # cur_ing.id
         # for щио in current_ingred:

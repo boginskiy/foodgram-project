@@ -18,6 +18,18 @@ class Recipe(models.Model):
     def __str__(self):
         return f'{self.name}'
 
+    def __unicode__(self):
+        return self.name
+
+    def get_nominations(self):
+        ingredients_list = self.ingredients.get_query_set()
+        ingredients_str = ''
+        for ingredient in ingredients_list:
+            ingredients_str += ', ' + ingredient.title
+        return ingredients_str.lstrip(', ')
+
+    get_nominations.short_description = 'Ingredients'
+
     class Meta:
         ordering = ['-id']
 
