@@ -28,12 +28,14 @@ def recipes_favorite(request, recipes_id):
             return Response({"message": "Рецепт уже есть в списке избранное."},
                             status=status.HTTP_400_BAD_REQUEST)
         else:
-            obj = FavoriteRecipe.objects.create(user=request.user, recipe_id=recipes_id)
+            obj = FavoriteRecipe.objects.create(
+                user=request.user, recipe_id=recipes_id)
             serializer = UserRecipeSerializer(obj.recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     if logic:
-        obj = get_object_or_404(FavoriteRecipe, user=request.user, recipe_id=recipes_id)
+        obj = get_object_or_404(
+            FavoriteRecipe, user=request.user, recipe_id=recipes_id)
         obj.delete()
         return Response(
             {"message": "Рецепт удален из списка избранное."},
@@ -131,14 +133,15 @@ def recipes_list_create(request):
     elif tags:
         if int(is_favorited):
             favorite_recipe_qwery = FavoriteRecipe.objects.filter(
-            user=request.user)
+                user=request.user)
             recipes = Recipe.objects.filter(
-            favorite_rec__in=favorite_recipe_qwery, tags__slug__in=tags).distinct()
+                favorite_rec__in=favorite_recipe_qwery,
+                tags__slug__in=tags).distinct()
 
         else:
             recipes = Recipe.objects.filter(tags__slug__in=tags).distinct()
 
-    elif tags == None:
+    elif tags is None:
         recipes = Recipe.objects.filter(tags__slug__in=[])
 
     paginator = RecipesListPagination()

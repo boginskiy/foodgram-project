@@ -19,7 +19,7 @@ class IngredientListDetailSerializer(serializers.ModelSerializer):
 class IngredientRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для обработки поля ингредиенты в рецепте."""
 
-    id = serializers.IntegerField(required=True, source='ingredient.id') # NEN!!!!
+    id = serializers.IntegerField(required=True, source='ingredient.id')
     name = serializers.CharField(read_only=True, source='ingredient.name')
     measurement_unit = serializers.CharField(
         read_only=True, source='ingredient.measurement_unit')
@@ -106,8 +106,8 @@ class RecipeSerializer(serializers.ModelSerializer):
         new_recipe = Recipe.objects.create(**validated_data)
 
         for ingredient in ingredients_dict:
-            id_ = ingredient['ingredient']['id'] # NEN 
-            amount_ = ingredient['amount'] # NEN !!!!!
+            id_ = ingredient['ingredient']['id']
+            amount_ = ingredient['amount']
 
             ing_rec, status = IngredientRecipe.objects.get_or_create(
                 ingredient_id=id_, amount=amount_)
@@ -131,7 +131,8 @@ class RecipeSerializer(serializers.ModelSerializer):
 
         for new_ingr in new_ingredients:
             update_rec, status = IngredientRecipe.objects.get_or_create(
-            ingredient_id=new_ingr['ingredient']['id'], amount=new_ingr['amount'])
+                ingredient_id=new_ingr['ingredient']['id'],
+                amount=new_ingr['amount'])
             instance.ingredients.add(update_rec)
 
         new_tags_list = self.context.get('tags')

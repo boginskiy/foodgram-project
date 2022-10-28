@@ -4,16 +4,10 @@ from .models import (
     FavoriteRecipe, ShoppingList)
 
 
-# class RecipeIngredientInline(admin.TabularInline):
-#     model = Recipe
-#     extra = 3
-
-
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     """Настройка админки для рецептов."""
 
-    # inlines = (RecipeIngredientInline,)
     list_display = (
         'id', 'name', 'author', 'image', 'text', 'cooking_time')
     list_display_links = ('name',)
