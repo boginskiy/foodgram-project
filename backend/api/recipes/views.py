@@ -188,27 +188,28 @@ def recipes_detail(request, recipes_id):
 def recipes_detail_shop_cart(request, recipes_id):
     """Добавить рецепт в список покупок, удалить его."""
 
-    recipe = get_object_or_404(Recipe, id=recipes_id)
+    # recipe = get_object_or_404(Recipe, id=recipes_id)
     logic = ShoppingList.objects.filter(
-        user=request.user, recipe=recipes_id).exists()
+        user=request.user, recipe_id=recipes_id).exists()
 
     if request.method == 'POST':
         if logic:
             return Response({"message": "Рецепт уже добавлен."},
                             status=status.HTTP_400_BAD_REQUEST)
-
-        ShoppingList.objects.create(
-            user=request.user, recipe=recipe)
-        serializer = UserRecipeSerializer(recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            obj = ShoppingList.objects.create(
+                user=request.user, recipe_id=recipes_id)
+            serializer = UserRecipeSerializer(obj.recipe)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     if not logic:
         return Response({"message": "Рецепт отсутствует в списке покупок."},
                         status=status.HTTP_400_BAD_REQUEST)
-
-    recipe_in_list_del = get_object_or_404(ShoppingList, recipe=recipes_id)
-    recipe_in_list_del.delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    else:
+        obj = get_object_or_404(
+            ShoppingList, user=request.user, recipe_id=recipes_id)
+        obj.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(['GET'])
