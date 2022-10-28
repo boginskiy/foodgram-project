@@ -20,29 +20,28 @@ from .permissions import PatchIsAuthorOrReadAll
 def recipes_favorite(request, recipes_id):
     """Добавление рецепта в список избранное/ удаление из списка."""
 
-    recipe = get_object_or_404(Recipe, id=recipes_id)
     logic = FavoriteRecipe.objects.filter(
-        user=request.user, recipe=recipe).exists()
+        user=request.user, recipe_id=recipes_id).exists()
 
     if request.method == 'POST':
         if logic:
             return Response({"message": "Рецепт уже есть в списке избранное."},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        FavoriteRecipe.objects.create(user=request.user, recipe=recipe)
-        serializer = UserRecipeSerializer(recipe)
+        obj = FavoriteRecipe.objects.create(user=request.user, recipe_id=recipes_id)
+        serializer = UserRecipeSerializer(obj.recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     if logic:
-        recipe_del = FavoriteRecipe.objects.get(recipe=recipes_id)
-        recipe_del.delete()
+        obj = get_object_or_404(FavoriteRecipe, recipe_id=recipes_id)
+        obj.delete()
         return Response(
             {"message": "Рецепт удален из списка избранное."},
             status=status.HTTP_204_NO_CONTENT)
-
-    return Response(
-        {'message': 'Рецепт отсутствует в списке избранное.'},
-        status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response(
+            {'message': 'Рецепт отсутствует в списке избранное.'},
+            status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
