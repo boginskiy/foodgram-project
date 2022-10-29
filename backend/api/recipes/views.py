@@ -128,7 +128,12 @@ def recipes_list_create(request):
         recipes = Recipe.objects.filter(shop_list__in=shopping_list_qwery)
 
     elif author:
-        recipes = Recipe.objects.filter(author=int(author))
+        if tags:
+            recipes = Recipe.objects.filter(
+                author=int(author), tags__slug__in=tags).distinct()
+        else:
+            recipes = Recipe.objects.filter(
+                author=int(author), tags__slug__in=[])
 
     elif tags:
         if int(is_favorited):

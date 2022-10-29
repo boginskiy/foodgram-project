@@ -23,7 +23,7 @@ class UserMultiSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         """Поле is_subscribed для отображения статуса подписки."""
 
-        request_user = self.context.get('users_id')
+        request_user = self.context['request'].user.id
         queryset = UserFollowing.objects.filter(
             user=obj.id, subscriber=request_user).exists()
         return queryset

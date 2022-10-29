@@ -28,7 +28,7 @@ def users_list_signup(request):
     users = User.objects.all()
     result_page = paginator.paginate_queryset(users, request)
     serializer = UserMultiSerializer(
-        result_page, context={'users_id': request.user.id}, many=True)
+        result_page, context={'request': request}, many=True)
     return paginator.get_paginated_response(serializer.data)
 
 
@@ -39,7 +39,7 @@ def users_detail(request, users_id):
 
     user = get_object_or_404(User, id=users_id)
     serializer = UserMultiSerializer(
-        user, context={'users_id': request.user.id})
+        user, context={'request': request})
     return Response(serializer.data)
 
 
@@ -50,7 +50,7 @@ def users_me(request):
 
     user = get_object_or_404(User, username=request.user)
     serializer = UserMultiSerializer(
-        user, context={'users_id': request.user.id})
+        user, context={'request': request})
     return Response(serializer.data)
 
 
@@ -105,7 +105,7 @@ def users_subscribe_delete(request, users_id):
                 {"message": "Подписка на свой контент невозможна"},
                 status=status.HTTP_400_BAD_REQUEST)
 
-        if logic:
+        elif logic:
             return Response(
                 {"message": "Вы уже подписаны на контент!"},
                 status=status.HTTP_400_BAD_REQUEST)
@@ -119,10 +119,10 @@ def users_subscribe_delete(request, users_id):
         return Response(
             {"message": "Вы не подписаны на контент!"},
             status=status.HTTP_400_BAD_REQUEST)
-
-    user_delete = get_object_or_404(
-        UserFollowing, user=user_content, subscriber=follower)
-    user_delete.delete()
-    return Response(
-        {"message": "Вы успешно отписаны"},
-        status=status.HTTP_204_NO_CONTENT)
+    else:
+        user_delete = get_object_or_404(
+            UserFollowing, user=user_content, subscriber=follower)
+        user_delete.delete()
+        return Response(
+            {"message": "Вы успешно отписаны"},
+            status=status.HTTP_204_NO_CONTENT)
