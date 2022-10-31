@@ -103,26 +103,21 @@ def recipes_list_create(request):
     """Список всех рецептов. Создание нового."""
 
     if request.method == 'POST':
-        if 'tags' not in request.data:
-            return Response(
-                {"tags": "This field is required."},
-                status=status.HTTP_400_BAD_REQUEST)
-
-        tags = request.data.pop('tags')
         serializer = RecipeSerializer(
-            data=request.data, context={'request': request, 'tags': tags})
+            data=request.data, context={'request': request})
+
         if serializer.is_valid(raise_exception=True):
             serializer.save(author=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    is_favorited = request.query_params.get('is_favorited', 0)
-    is_in_shopping_cart = request.query_params.get(
-        'is_in_shopping_cart', 0)
-    author = request.query_params.get('author', 0)
+    is_favorited = int(request.query_params.get('is_favorited', 0))
+    is_in_shopping_cart = int(request.query_params.get(
+        'is_in_shopping_cart', 0))
+    author = int(request.query_params.get('author', 0))
     tags = dict(request.query_params.lists()).get('tags')
 
-    if int(is_in_shopping_cart):
+    if is_in_shopping_cart:
         shopping_list_qwery = ShoppingList.objects.filter(
             user=request.user)
         recipes = Recipe.objects.filter(shop_list__in=shopping_list_qwery)
@@ -130,23 +125,20 @@ def recipes_list_create(request):
     elif author:
         if tags:
             recipes = Recipe.objects.filter(
-                author=int(author), tags__slug__in=tags).distinct()
+                author=author, tags__slug__in=tags).distinct()
         else:
             recipes = Recipe.objects.filter(
-                author=int(author), tags__slug__in=[])
-
+                author=author, tags__slug__in=[])
     elif tags:
-        if int(is_favorited):
+        if is_favorited:
             favorite_recipe_qwery = FavoriteRecipe.objects.filter(
                 user=request.user)
             recipes = Recipe.objects.filter(
                 favorite_rec__in=favorite_recipe_qwery,
                 tags__slug__in=tags).distinct()
-
         else:
             recipes = Recipe.objects.filter(tags__slug__in=tags).distinct()
-
-    elif tags is None:
+    else:
         recipes = Recipe.objects.filter(tags__slug__in=[])
 
     paginator = RecipesListPagination()
@@ -174,13 +166,9 @@ def recipes_detail(request, recipes_id):
         recipe.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    tags = []
-    if 'tags' in request.data:
-        tags = request.data.pop('tags')
-
     serializer = RecipeSerializer(
         recipe, data=request.data, partial=True,
-        context={'request': request, 'tags': tags})
+        context={'request': request})
 
     if serializer.is_valid(raise_exception=True):
         serializer.save()
@@ -193,7 +181,6 @@ def recipes_detail(request, recipes_id):
 def recipes_detail_shop_cart(request, recipes_id):
     """Добавить рецепт в список покупок, удалить его."""
 
-    # recipe = get_object_or_404(Recipe, id=recipes_id)
     logic = ShoppingList.objects.filter(
         user=request.user, recipe_id=recipes_id).exists()
 

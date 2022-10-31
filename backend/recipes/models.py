@@ -13,7 +13,7 @@ class Recipe(models.Model):
     text = models.TextField(blank=False)
     ingredients = models.ManyToManyField(
         'IngredientRecipe', related_name='recipe')
-    tags = models.ManyToManyField('Tag')
+    tags = models.ManyToManyField('Tag', related_name='recipe')
     cooking_time = models.IntegerField(blank=False)
 
     def __str__(self):

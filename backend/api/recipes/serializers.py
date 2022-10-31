@@ -30,17 +30,6 @@ class IngredientRecipeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
-class TagSerializer(serializers.ModelSerializer):
-    """Сериализатор тегов."""
-
-    id = serializers.IntegerField()
-
-    class Meta:
-        model = Tag
-        fields = ('id', 'name', 'color', 'slug')
-        read_only_fields = ('id', 'name', 'color', 'slug')
-
-
 class Base64ImageField(serializers.ImageField):
     """Преобразование поля Image. Файл принимается в
     кодировке base64 и декодируется. далее изображение сохраняется в базе.
@@ -54,21 +43,94 @@ class Base64ImageField(serializers.ImageField):
         return super().to_internal_value(data)
 
 
-class RecipeSerializer(serializers.ModelSerializer):
-    """Сериализатор базовый для модели Recipe."""
+class TagSerializer(serializers.ModelSerializer):
+    """Сериализатор тегов на чтение."""
 
-    author = UserMultiSerializer(read_only=True)
+    class Meta:
+        model = Tag
+        fields = '__all__'
+
+
+class RecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор для записи информации модели Recipe."""
+
     ingredients = IngredientRecipeSerializer(many=True)
-    tags = TagSerializer(read_only=True, many=True)
+    tags = serializers.ListField(write_only=True)
     image = Base64ImageField(required=False, allow_null=True)
-    is_favorited = serializers.SerializerMethodField()
-    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
-        fields = ('id', 'tags', 'author', 'ingredients',
-                  'is_favorited', 'is_in_shopping_cart', 'name',
+        fields = ('tags', 'ingredients', 'name',
                   'image', 'text', 'cooking_time')
+
+    def to_representation(self, instance):
+        """Переопределение сериализатора для операции чтения."""
+
+        return RecipeReadSerializer(
+            instance,
+            context={
+                'request': self.context.get('request')
+            }).data
+
+    def tags_create_update_func(self, arr_list, obj_recipe):
+        """Функция записи поля tags модели Recipe."""
+
+        if obj_recipe.tags:
+            obj_recipe.tags.clear()
+
+        for tag in arr_list:
+            tag_recipe = get_object_or_404(Tag, id=tag)
+            obj_recipe.tags.add(tag_recipe)
+        return obj_recipe
+
+    def ingredients_create_update_func(self, arr_dict, obj_recipe):
+        """Функция записи поля ingredients модели Recipe."""
+
+        if obj_recipe.ingredients:
+            obj_recipe.ingredients.clear()
+
+        for ingredient in arr_dict:
+            id = ingredient['ingredient']['id']
+            amount = ingredient['amount']
+
+            ingred_recipe, status = IngredientRecipe.objects.get_or_create(
+                ingredient_id=id, amount=amount)
+            obj_recipe.ingredients.add(ingred_recipe)
+        return obj_recipe
+
+    def create(self, validated_data):
+        """Кастомный метод создания рецептов."""
+
+        ingredients_dict = validated_data.pop('ingredients')
+        tags_list = validated_data.pop('tags')
+        new_recipe = Recipe.objects.create(**validated_data)
+
+        self.ingredients_create_update_func(ingredients_dict, new_recipe)
+
+        self.tags_create_update_func(tags_list, new_recipe)
+        return new_recipe
+
+    def update(self, instance, validated_data):
+        """Кастомный метод обновления рецептов."""
+
+        new_ingredients = validated_data.pop('ingredients')
+        new_tags = validated_data.pop('tags')
+
+        self.ingredients_create_update_func(new_ingredients, instance)
+
+        self.tags_create_update_func(new_tags, instance)
+        return super().update(instance, validated_data)
+
+
+class RecipeReadSerializer(serializers.ModelSerializer):
+    """Сериализатор для чтения информации модели Recipe."""
+
+    author = UserMultiSerializer(default=serializers.CurrentUserDefault())
+    ingredients = IngredientRecipeSerializer(many=True)
+    tags = TagSerializer(many=True)
+    image = Base64ImageField()
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     def get_is_favorited(self, obj):
         """Определяет фавориты рецептов."""
@@ -99,52 +161,6 @@ class RecipeSerializer(serializers.ModelSerializer):
                 'Время приготовления от 1 мин.')
         return value
 
-    def create(self, validated_data):
-        """Кастомный метод создания рецептов."""
-
-        ingredients_dict = validated_data.pop('ingredients')
-        new_recipe = Recipe.objects.create(**validated_data)
-
-        for ingredient in ingredients_dict:
-            id_ = ingredient['ingredient']['id']
-            amount_ = ingredient['amount']
-
-            ing_rec, status = IngredientRecipe.objects.get_or_create(
-                ingredient_id=id_, amount=amount_)
-            new_recipe.ingredients.add(ing_rec)
-
-        tags_list = self.context.get('tags')
-        for tag_id in tags_list:
-            tag_rec = get_object_or_404(Tag, id=tag_id)
-            new_recipe.tags.add(tag_rec)
-
-        return new_recipe
-
-    def update(self, instance, validated_data):
-        """Кастомный метод обновления рецептов."""
-
-        new_ingredients = validated_data.pop('ingredients')
-        current_ingredients = instance.ingredients.all()
-
-        for curr_ingr in current_ingredients:
-            instance.ingredients.remove(curr_ingr.id)
-
-        for new_ingr in new_ingredients:
-            update_rec, status = IngredientRecipe.objects.get_or_create(
-                ingredient_id=new_ingr['ingredient']['id'],
-                amount=new_ingr['amount'])
-            instance.ingredients.add(update_rec)
-
-        new_tags_list = self.context.get('tags')
-        all_tags_recipe = instance.tags.all()
-
-        if new_tags_list:
-            for tag_rec in all_tags_recipe:
-                instance.tags.remove(tag_rec.id)
-
-            for tag_id in new_tags_list:
-                tag_rec = get_object_or_404(Tag, id=tag_id)
-                instance.tags.add(tag_rec)
-
-        super().update(instance, validated_data)
-        return instance
+    class Meta:
+        model = Recipe
+        fields = '__all__'
