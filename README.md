@@ -1,4 +1,4 @@
-# **сервис Foodgram «Продуктовый помощник»**
+# **Продуктовый помощник «Foodgram»**
 
 ![example workflow](https://github.com/boginskiy/foodgram-project-react/actions/workflows/main.yml/badge.svg?event=push)
 
